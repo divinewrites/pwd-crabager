@@ -1,9 +1,9 @@
-use base64::{engine::general_purpose, Engine as _};
 use csv;
 use rpassword::read_password;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::io::{self, Write};
+use crate::base64::Base64;
 
 pub struct PasswordManager {
     pub passwords: HashMap<String, String>,
@@ -47,16 +47,16 @@ impl PasswordManager {
             return;
         }
 
-        let b64 = general_purpose::STANDARD.encode(password);
+        let encoded_password = Base64::encode(&password);
 
-        self.passwords.insert(site.to_string(), b64);
+        self.passwords.insert(site.to_string(), encoded_password);
         self.sites.insert(site.to_string());
         println!("Password created successfully for {}.", site);
     }
 
     pub fn retrieve_password(&self, site: &str) {
         if let Some(encoded_password) = self.passwords.get(site) {
-            match general_purpose::STANDARD.decode(encoded_password) {
+            match Base64::decode(encoded_password) {
                 Ok(decoded_password) => {
                     if let Ok(password_str) = String::from_utf8(decoded_password) {
                         println!("Password for {}: {}", site, password_str);
@@ -91,7 +91,7 @@ impl PasswordManager {
                 print!("Enter the new password for {}: ", site);
                 io::stdout().flush().unwrap();
                 let new_password = read_password().expect("Failed to read password");
-                *password = general_purpose::STANDARD.encode(new_password);
+                *password = Base64::encode(&new_password);
                 println!("Password updated successfully for {}.", site);
             }
             None => println!("Password not found for {}.", site),

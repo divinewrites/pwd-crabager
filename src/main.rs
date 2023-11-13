@@ -1,6 +1,7 @@
 mod manager;
-use std::io::{self, Write};
+mod base64;
 
+use std::io::{self, Write};
 use manager::PasswordManager;
 
 fn main() {
