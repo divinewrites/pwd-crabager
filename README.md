@@ -24,8 +24,10 @@ cd pwd-crabager
 
 ## Build and Run
 
+```bash
 cargo build --release
 cargo run
+```
 
 Follow the on-screen instructions to interact with the password manager.
 
