@@ -1,5 +1,8 @@
+use base64::{engine::general_purpose, Engine as _};
+use csv;
 use rpassword::read_password;
 use std::collections::{HashMap, HashSet};
+use std::error::Error;
 use std::io::{self, Write};
 
 struct PasswordManager {
@@ -15,20 +18,58 @@ impl PasswordManager {
         }
     }
 
+    fn write_to_file(&self, path: &str) -> Result<(), Box<dyn Error>> {
+        let mut writer = csv::Writer::from_path(path)?;
+
+        writer.write_record(&["site", "password"])?;
+
+        for (site, password) in &self.passwords {
+            writer.write_record(&[site, password])?;
+        }
+
+        writer.flush()?;
+
+        Ok(())
+    }
+
     fn create_password(&mut self, site: &str) {
         print!("Enter the password for {}: ", site);
         io::stdout().flush().unwrap();
 
         let password = read_password().expect("Failed to read password");
-        self.passwords.insert(site.to_string(), password);
+
+        if !password.chars().any(char::is_uppercase)
+            || !password.chars().any(char::is_lowercase)
+            || !password.chars().any(char::is_numeric)
+            || password.len() < 8
+        {
+            println!("Password must be at least 8 characters long and include uppercase, lowercase, and numeric characters.");
+            return;
+        }
+
+        let b64 = general_purpose::STANDARD.encode(password);
+
+        self.passwords.insert(site.to_string(), b64);
         self.sites.insert(site.to_string());
         println!("Password created successfully for {}.", site);
     }
 
     fn retrieve_password(&self, site: &str) {
-        match self.passwords.get(site) {
-            Some(password) => println!("Password for {}: {}", site, password),
-            None => println!("Password not found for {}.", site),
+        if let Some(encoded_password) = self.passwords.get(site) {
+            match general_purpose::STANDARD.decode(encoded_password) {
+                Ok(decoded_password) => {
+                    if let Ok(password_str) = String::from_utf8(decoded_password) {
+                        println!("Password for {}: {}", site, password_str);
+                    } else {
+                        println!("Failed to convert password to UTF-8 for site: {}", site);
+                    }
+                }
+                Err(err) => {
+                    println!("Failed to decode password for site {}: {}", site, err);
+                }
+            }
+        } else {
+            println!("Password not found for {}.", site);
         }
     }
 
@@ -49,7 +90,7 @@ impl PasswordManager {
                 print!("Enter the new password for {}: ", site);
                 io::stdout().flush().unwrap();
                 let new_password = read_password().expect("Failed to read password");
-                *password = new_password;
+                *password = general_purpose::STANDARD.encode(new_password);
                 println!("Password updated successfully for {}.", site);
             }
             None => println!("Password not found for {}.", site),
@@ -73,6 +114,10 @@ fn main() {
 
         match command {
             "exit" => {
+                if let Err(err) = password_manager.write_to_file("passwords.csv") {
+                    eprintln!("Failed to write passwords to file: {}", err);
+                }
+
                 println!("Exiting the password manager.");
                 break;
             }
