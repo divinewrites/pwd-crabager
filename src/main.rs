@@ -1,85 +1,31 @@
+mod cli;
 mod manager;
-mod base64;
 
-use std::io::{self, Write};
+use cli::Action;
 use manager::PasswordManager;
+use structopt::StructOpt;
 
 fn main() {
-    let mut password_manager = PasswordManager::new();
+    let db_name = "pwd-crabager.db";
+    let mut password_manager = PasswordManager::new(db_name);
 
-    loop {
-        print!("Enter a command (create/retrieve/list/edit/exit): ");
-        io::stdout().flush().unwrap();
+    let args = cli::CommandLineArgs::from_args();
 
-        let mut input = String::new();
-        io::stdin()
-            .read_line(&mut input)
-            .expect("Failed to read line");
+    let action = args.action;
 
-        let command = input.trim();
-
-        match command {
-            "exit" => handle_exit(&mut password_manager),
-            "create" => handle_create(&mut password_manager),
-            "retrieve" => handle_retrieve(&password_manager),
-            "list" => handle_list(&password_manager),
-            "edit" => handle_edit(&mut password_manager),
-            _ => {
-                println!("Unknown command: {}", command);
-            }
+    match action {
+        Action::Create { site, force } => {
+            password_manager.prompt(&site, force.unwrap_or(false));
+        }
+        Action::Edit { site } => {
+            password_manager.edit_password(&site);
+        }
+        Action::Generate {} => {
+            let password = password_manager.generate_password();
+            println!("Generated password: {}", password)
+        }
+        Action::List {} => {
+            let _ = password_manager.list_sites(db_name);
         }
     }
-}
-
-fn handle_exit(password_manager: &mut PasswordManager) {
-    if let Err(err) = password_manager.write_to_file("passwords.csv") {
-        eprintln!("Failed to write passwords to file: {}", err);
-    }
-    println!("Exiting the password manager.");
-    std::process::exit(0);
-}
-
-fn handle_create(password_manager: &mut PasswordManager) {
-    print!("Enter the site: ");
-    io::stdout().flush().unwrap();
-    let mut site_input = String::new();
-    io::stdin()
-        .read_line(&mut site_input)
-        .expect("Failed to read line");
-    let site = site_input.trim();
-    password_manager.create_password(site);
-}
-
-fn handle_retrieve(password_manager: &PasswordManager) {
-    if password_manager.sites.is_empty() {
-        println!("No sites found. Cannot retrieve password.");
-        return;
-    }
-
-    password_manager.list_sites();
-    print!("Enter the site for which you want to retrieve the password: ");
-    io::stdout().flush().unwrap();
-    let mut site_input = String::new();
-    io::stdin()
-        .read_line(&mut site_input)
-        .expect("Failed to read line");
-    let site = site_input.trim();
-    password_manager.retrieve_password(site);
-}
-
-
-fn handle_list(password_manager: &PasswordManager) {
-    password_manager.list_sites();
-}
-
-fn handle_edit(password_manager: &mut PasswordManager) {
-    password_manager.list_sites();
-    print!("Enter the site for which you want to edit the password: ");
-    io::stdout().flush().unwrap();
-    let mut site_input = String::new();
-    io::stdin()
-        .read_line(&mut site_input)
-        .expect("Failed to read line");
-    let site = site_input.trim();
-    password_manager.edit_password(site);
 }

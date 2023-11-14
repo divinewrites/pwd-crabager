@@ -1,19 +1,22 @@
-# pwd-crabager 🦀
-
-**pwd-crabager** is a simple and secure password manager written in Rust, providing a command-line interface for managing your passwords.
+## pwd-crabager 🦀
+A simple and "secure" password manager written in Rust, providing a command-line interface for managing your passwords.
 
 ## Features
 
-- **Create Passwords:** Add new passwords securely.
-- **Retrieve Passwords:** Retrieve passwords for specific sites.
-- **List Sites:** View a list of sites where passwords are stored.
-- **Edit Passwords:** Modify existing passwords.
+- **Create Passwords:** Add a new password for a specific site or application.
+
+- **Edit Passwords:** Modify the password for an existing site or application.
+
+- **Generate Secure Passwords:** Automatically generate a secure password.
+
+- **List Sites:** View a comprehensive list of sites and applications with stored passwords.
+
 
 ## Getting Started
 
 ### Prerequisites
 
-Make sure you have Rust installed. If not, you can download it from [rustup](https://rustup.rs/).
+Ensure you have Rust installed. If not, download it from [rustup](https://rustup.rs/).
 
 ### Clone the Repository
 
@@ -22,24 +25,40 @@ git clone https://github.com/divinewrites/pwd-crabager.git
 cd pwd-crabager
 ```
 
-## Build and Run
 
-```bash
-cargo build --release
-cargo run
-```
+## Usage/Examples
 
-Follow the on-screen instructions to interact with the password manager.
+- **Create Passwords:** Add a new password for a specific site or application.
+    ```bash
+    cargo run -- create <"site/app">
+    ```
+    To force editing, you can run: 
+    ```bash
+     cargo run -- create <"site/app"> true
+    ```
 
-## Usage
+- **Edit Passwords:** Modify the password for an existing site or application.
+    ```bash
+    cargo run -- edit <"site/app">
+    ```
 
-To create a new password, enter create and follow the prompts.
-To retrieve a password, enter retrieve and select the site from the list.
-To list all sites, enter list.
-To edit a password, enter edit and select the site from the list.
+- **Generate Secure Passwords:** Automatically generate a secure password.
+    ```bash
+    cargo run -- generate
+    ```
+
+- **List Sites:** View a comprehensive list of sites and applications with stored passwords.
+    ```bash
+    cargo run -- list
+    ```
+
+Follow the on-screen instructions or use the commands mentioned above to interact with the password manager.
+
+
 
 ## Contributing
 
-Feel free to contribute by opening issues or submitting pull requests.
+Feel free to contribute by opening issues or submitting pull requests. Your feedback and suggestions are valuable.
 
 Enjoy managing your passwords with pwd-crabager! 🦀🔐
+
