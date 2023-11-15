@@ -7,7 +7,7 @@ pub enum Action {
         #[structopt()]
         site: String,
         #[structopt(parse(try_from_str))]
-        force: Option<bool>,
+        generated: Option<String>,
     },
 
     /// Edit the password of a site
@@ -16,8 +16,11 @@ pub enum Action {
         site: String,
     },
 
-    /// Generates a secure password for you
-    Generate,
+    /// Delete site
+    Delete {
+        #[structopt()]
+        site: String,
+    },
 
     /// List all current sites a password was created for
     List,
@@ -26,7 +29,7 @@ pub enum Action {
 #[derive(Debug, StructOpt)]
 #[structopt(
     name = "pwd-crabager",
-    about = "A simple & 'secure' command line password manager written in Rust🦀"
+    about = "A simple & 'secure' command line password manager written in Rust 🦀"
 )]
 pub struct CommandLineArgs {
     #[structopt(subcommand)]

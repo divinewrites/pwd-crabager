@@ -14,18 +14,22 @@ fn main() {
     let action = args.action;
 
     match action {
-        Action::Create { site, force } => {
-            password_manager.prompt(&site, force.unwrap_or(false));
+        Action::Create { site, generated } => {
+            if generated.unwrap_or(String::new()) == "generated" {
+                password_manager.prompt(&site, true);
+                return;
+            }
+
+            password_manager.prompt(&site, false);
         }
         Action::Edit { site } => {
             password_manager.edit_password(&site);
         }
-        Action::Generate {} => {
-            let password = password_manager.generate_password();
-            println!("Generated password: {}", password)
-        }
         Action::List {} => {
             let _ = password_manager.list_sites(db_name);
+        }
+        Action::Delete { site } => {
+            password_manager.delete_password(&site);
         }
     }
 }
