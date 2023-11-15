@@ -31,18 +31,34 @@ impl PasswordManager {
         Ok(())
     }
 
-    pub fn prompt(&mut self, site: &str, force: bool) {
+    pub fn prompt(&mut self, site: &str, generated: bool) {
         if let Some(_existing_password) = self.database.get::<String>(site) {
-            if force {
-                self.edit_password(site);
-            } else {
-                println!("Use the CLI argument 'Edit' to edit the existing password.");
-            }
+            println!("Use the CLI argument 'Edit' to edit the existing password.");
 
             return;
         }
 
-        let password = self.get_secure_password(false);
+        if generated {
+            let data = PasswordData{ id: site.to_string(), value: self.generate_password() };
+            println!("Password: {}", data.value);
+
+            if let Err(e) = self.write_to_db(&data) {
+                eprintln!("Failed to save password: {}", e);
+                std::process::exit(1);
+            }
+    
+            println!("Successfully saved password for: {}", site);
+            return;
+        }
+
+        print!("Enter a password: ");
+
+        io::stdout().flush().unwrap();
+        let password = read_password().unwrap_or_else(|e| {
+            eprintln!("Failed to read password: {}", e);
+            std::process::exit(1);
+        });
+
         let data = PasswordData {
             id: site.to_string(),
             value: password,
@@ -59,7 +75,7 @@ impl PasswordManager {
     pub fn generate_password(&self) -> String {
         let mut pass = String::new();
         let mut rng: ThreadRng = thread_rng();
-        for _ in 0..11 {
+        for _ in 0..16 {
             pass.push(rng.gen_range(33..123) as u8 as char);
         }
         pass
@@ -77,7 +93,7 @@ impl PasswordManager {
 
         println!("You have the following sites <-> passwords: ");
         for kv in db.iter() {
-            println!("{}. {}", kv.get_key(), kv.get_value::<String>().unwrap());
+            println!("{}: {}", kv.get_key(), kv.get_value::<String>().unwrap());
         }
 
         Ok(())
@@ -85,12 +101,14 @@ impl PasswordManager {
 
     pub fn edit_password(&mut self, site: &str) {
         if let Some(existing_password) = self.database.get::<String>(site) {
-            println!("The site '{}' already has a password:", site);
             println!("Current password: {}", existing_password);
+            print!("Enter a new password for {}: ", site);
 
-            println!("Enter a new password for {}:", site);
             io::stdout().flush().unwrap();
-            let new_password = self.get_secure_password(true);
+            let new_password = read_password().unwrap_or_else(|e| {
+                eprintln!("Failed to read password: {}", e);
+                std::process::exit(1);
+            });
 
             let data = PasswordData {
                 id: site.to_string(),
@@ -111,29 +129,18 @@ impl PasswordManager {
         }
     }
 
-    fn get_secure_password(&self, pw_exists: bool) -> String {
-        if !pw_exists {
-            println!("Enter a password (must be secure):");
-            io::stdout().flush().unwrap();
-        }
-        let mut password = read_password().unwrap_or_else(|e| {
-            eprintln!("Failed to read password: {}", e);
-            std::process::exit(1);
-        });
-        if !self.is_secure_password(&password) {
-            println!("Password must be at least 8 characters long and include uppercase, lowercase, and numeric characters.");
-            println!("Generating a secure password...");
-            password = self.generate_password();
-            println!("Generated password: {}", password);
-        }
-        password
-    }
+    pub fn delete_password(&mut self, site: &str) {
+        if let Some(_) = self.database.get::<String>(site) {
+            if let Err(e) = self.database.rem(&site) {
+                eprintln!("Failed to update password: {}", e);
+                std::process::exit(1);
+            }
 
-    fn is_secure_password(&self, password: &str) -> bool {
-        password.len() >= 8
-            && password.chars().any(char::is_uppercase)
-            && password.chars().any(char::is_lowercase)
-            && password.chars().any(char::is_numeric)
+            println!("Successfully deleted password for: {}", site);
+        } else {
+            println!("Site not found.");
+            return;
+        }
     }
 
     fn initialize_db(db_name: &str) -> PickleDb {
