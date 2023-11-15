@@ -5,7 +5,7 @@ use std::{
 };
 
 use pickledb::{PickleDb, PickleDbDumpPolicy, SerializationMethod};
-use rand::{rngs::ThreadRng, thread_rng, Rng};
+use rand::{thread_rng, Rng};
 use rpassword::read_password;
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
@@ -77,6 +77,9 @@ impl PasswordManager {
         let mut rng: ThreadRng = thread_rng();
         for _ in 0..16 {
             pass.push(rng.gen_range(33..123) as u8 as char);
+        let mut rng = thread_rng();
+        for _ in 0..11 {
+            pass.push(rng.gen_range('!'..'{'));
         }
         pass
     }
