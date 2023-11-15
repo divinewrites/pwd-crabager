@@ -39,14 +39,17 @@ impl PasswordManager {
         }
 
         if generated {
-            let data = PasswordData{ id: site.to_string(), value: self.generate_password() };
+            let data = PasswordData {
+                id: site.to_string(),
+                value: self.generate_password(),
+            };
             println!("Password: {}", data.value);
 
             if let Err(e) = self.write_to_db(&data) {
                 eprintln!("Failed to save password: {}", e);
                 std::process::exit(1);
             }
-    
+
             println!("Successfully saved password for: {}", site);
             return;
         }
@@ -74,9 +77,6 @@ impl PasswordManager {
 
     pub fn generate_password(&self) -> String {
         let mut pass = String::new();
-        let mut rng: ThreadRng = thread_rng();
-        for _ in 0..16 {
-            pass.push(rng.gen_range(33..123) as u8 as char);
         let mut rng = thread_rng();
         for _ in 0..11 {
             pass.push(rng.gen_range('!'..'{'));
