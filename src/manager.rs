@@ -89,7 +89,7 @@ impl PasswordManager {
 
         let db = &self.database;
 
-        if db.total_keys() <= 0 {
+        if db.total_keys() == 0 {
             eprintln!("Error: The database is empty. Try creating a password first!");
             std::process::exit(1);
         }
@@ -133,8 +133,8 @@ impl PasswordManager {
     }
 
     pub fn delete_password(&mut self, site: &str) {
-        if let Some(_) = self.database.get::<String>(site) {
-            if let Err(e) = self.database.rem(&site) {
+        if self.database.get::<String>(site).is_some() {
+            if let Err(e) = self.database.rem(site) {
                 eprintln!("Failed to update password: {}", e);
                 std::process::exit(1);
             }
@@ -142,7 +142,6 @@ impl PasswordManager {
             println!("Successfully deleted password for: {}", site);
         } else {
             println!("Site not found.");
-            return;
         }
     }
 
