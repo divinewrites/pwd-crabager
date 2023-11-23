@@ -60,5 +60,5 @@ Follow the on-screen instructions or use the commands mentioned above to interac
 
 Feel free to contribute by opening issues or submitting pull requests. Your feedback and suggestions are valuable.
 
-Enjoy managing your passwords with pwd-crabager! THIS IS NOT SECURE, NO ENCRYPTION, JUST FOR LEARNING! 🦀🔐 🦀🔐
+Enjoy managing your passwords with pwd-crabager! THIS IS NOT SECURE, NO ENCRYPTION, JUST FOR LEARNING! 🦀🔐
 
